@@ -3,8 +3,11 @@ def log(message,answer):
     from datetime import datetime
     print(datetime.now())
 
-    print("Сообщение от {0} {1} (id = {2})\nТекст - {3}".format(message.from_user.first_name,
-                                                        message.from_user.last_name,
+    requestMessage = "Сообщение от {0} {1} (id = {2})\nТекст - {3}".format(str(message.chat.first_name), str(message.chat.last_name),
                                                         str(message.from_user.id),
-                                                        message.text))
-    print("Ответ - {0}".format(answer))
+                                                        message.text)
+    responseMessage = "Ответ - {0}".format(answer)
+
+    print(requestMessage)
+    print(responseMessage)
+
