@@ -1,5 +1,4 @@
 FROM python:3
-ENV abc=hello
 RUN mkdir /data
 WORKDIR /data
 ADD requirements.txt /data

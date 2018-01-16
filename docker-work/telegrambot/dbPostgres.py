@@ -1,5 +1,6 @@
-import postgresql
+import postgresql #импорт библиотекки постгрис
 from datetime import datetime
+
 db = postgresql.open('pq://west223:westwest223@dbpostgres:5432/telegram_db')
 
 #Вставить запись в таблицу user_messages

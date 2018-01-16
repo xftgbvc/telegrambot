@@ -1,36 +1,38 @@
 # -*- coding: utf-8 -*-
-import telebot
+import telebot #telegramp api
 import random
 import os
 import youtube
 from constants import *
-import gameNews
-from log import log
-import dbPostgres
-from telebot.types import LabeledPrice
+import gameNews #игровые новости
+from log import log #логи в консоль
+import dbPostgres #БД постгрис
+import pyowm #погода
 
-prices = [LabeledPrice(label='Цена', amount=50000)]
+
 bot = telebot.TeleBot(BOT_TOKEN)
 news = gameNews.News('http://gamemag.ru/',0, 23, 1)
 youtubeplaylist = youtube.YouTubePlayList('PL3485902CC4FB6C67', '50')
 
 
+owm = pyowm.OWM('ff79e09fdcbbc3e4d6c6a744b0a11f2b')
 
 
 print('Бот запущен')
 
+#Логика бота
 @bot.message_handler(commands=['start'])
 def handle_command(message):
     user_markup = telebot.types.ReplyKeyboardMarkup(True,True)
     user_markup.row('/start','/stop', '/help')
-    user_markup.row('фото', 'новости', 'аудио', 'видео','локация')
+    user_markup.row('погода','фото', 'новости', 'аудио', 'видео','локация')
     answer = "Добро Пожаловать " + message.chat.first_name + ' ' + message.chat.last_name + \
              ". Для получения информации воспользутесь коммандой /help"
     bot.send_message(message.chat.id, answer, reply_markup=user_markup)
 
 @bot.message_handler(commands=['stop'])
 def handle_command(message):
-    hide_markup = telebot.types.ReplyKeyboardRemove()
+    hide_markup = telebot.types.ReplyKeyboardRemove() #скрыть клавиатуры
     bot.send_message(message.chat.id, '...', reply_markup=hide_markup)
 
 @bot.message_handler(commands=['help'])
@@ -45,7 +47,7 @@ def handle_command(message):
     if message.text == "фото":
         answer = "Выберете категорию фото"
         keyboard = telebot.types.InlineKeyboardMarkup()
-        keyboard.add(*[telebot.types.InlineKeyboardButton(text=name, callback_data=name) for name in ['Кошак','Собака','Лошадь']])
+        keyboard.add(*[telebot.types.InlineKeyboardButton(text=name, callback_data=name) for name in ['Кот','Собака','Лошадь']])
         log(message, answer)
         bot.send_message(message.chat.id, answer, parse_mode='Markdown', reply_markup=keyboard)
 
@@ -72,22 +74,16 @@ def handle_command(message):
         dbPostgres.insertUserMessage(message, answer)  # добавляем запись в БД
         bot.send_location(message.chat.id, *answer)
 
-    elif message.text == "товар":
-        bot.send_invoice(message.chat.id, title='Coca cola',
-                         description='Описание товара!',
-                         provider_token='381764678:TEST:2872',
-                         currency='rub',
-                         photo_url='https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Flasche_Coca-Cola_0%2C2_Liter.jpg/220px-Flasche_Coca-Cola_0%2C2_Liter.jpg',
-                         photo_height=512,  # !=0/None or picture won't be shown
-                         photo_width=512,
-                         photo_size=512,
-                         is_flexible=False,  # True If you need to set up Shipping Fee
-                         prices=prices,
-                         start_parameter='time-machine-example',
-                         invoice_payload='teest')
+    elif message.text == "погода":
+        answer = 'Выберите город:'
+        keyboard = telebot.types.InlineKeyboardMarkup()
+        keyboard.add(*[telebot.types.InlineKeyboardButton(text=city, callback_data=city) for city in ['Тверь', 'Москва', 'Санкт-Петербург']])
+        log(message, answer)
+        bot.send_message(message.chat.id, answer, parse_mode='Markdown', reply_markup=keyboard)
 
 
 
+    #неизвестная команда
     else:
         log(message,answer)
         bot.send_message(message.chat.id, answer)
@@ -106,10 +102,29 @@ def handle_command(c):
         send_photo(directory, c)
     elif c.data == 'moreNews':
         send_news(c.message, news.page + 1)
+    elif c.data == 'Тверь':
+        cityName = 'Tver,RU'
+        send_weather(cityName, c)
+    elif c.data == 'Москва':
+        cityName = 'Moscow,RU'
+        send_weather(cityName, c)
+    elif c.data == 'Санкт-Петербург':
+        cityName = 'Saint Petersburg,RU'
+        send_weather(cityName, c)
     else:
         bot.send_message(c.message.chat.id, "Ошибка. Не найдено")
 
 
+# функция - отправить погоду
+def send_weather(cityName, c):
+    observation = owm.weather_at_place(cityName)
+    w = observation.get_weather()
+    temperature = w.get_temperature('celsius')
+    answer = 'Температура: ' + str(temperature['temp']) + ' Максимальная температура: ' + str(temperature['temp_max']) + ' Минимальная температура: ' + str(temperature['temp_min'])
+    dbPostgres.insertUserMessage(c.message, answer)  # добавляем запись в БД
+    bot.send_message(c.message.chat.id, answer)
+
+#функция - отправить фото
 def send_photo(directory, c):
     images = os.listdir(directory)
     randomPhoto = random.choice(images)
@@ -120,7 +135,7 @@ def send_photo(directory, c):
     bot.send_photo(c.message.chat.id, img)
     img.close()
 
-
+#функция - отправить новости
 def send_news(message, page):
     news.page = page
     newsTitlesDb = '' #заголовки новостей для бд
@@ -136,6 +151,7 @@ def send_news(message, page):
     keyboard.add(telebot.types.InlineKeyboardButton(text='+', callback_data='moreNews'))
     bot.send_message(message.chat.id, '<pre>---------- Загрузить больше новостей ----------</pre>', parse_mode='HTML', reply_markup=keyboard)
 
+#функция - отправить видео
 def send_video(message):
     videos = youtubeplaylist.parse()
     randomVideo = random.choice(videos)
