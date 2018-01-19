@@ -1,4 +1,6 @@
 py-postgresql
 pyTelegramBotAPI
 BeautifulSoup4
+vedis
 pyowm
+

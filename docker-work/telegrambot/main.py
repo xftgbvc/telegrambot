@@ -8,7 +8,8 @@ import gameNews #игровые новости
 from log import log #логи в консоль
 import dbPostgres #БД постгрис
 import pyowm #погода
-
+import dbworker
+import config
 
 bot = telebot.TeleBot(BOT_TOKEN)
 news = gameNews.News('http://gamemag.ru/',0, 23, 1)
@@ -22,24 +23,35 @@ print('Бот запущен')
 
 #Логика бота
 @bot.message_handler(commands=['start'])
-def handle_command(message):
-    user_markup = telebot.types.ReplyKeyboardMarkup(True,True)
-    user_markup.row('/start','/stop', '/help')
-    user_markup.row('погода','фото', 'новости', 'аудио', 'видео','локация')
+def cmd_start(message):
     answer = "Добро Пожаловать " + message.chat.first_name + ' ' + message.chat.last_name + \
-             ". Для получения информации воспользутесь коммандой /help"
-    bot.send_message(message.chat.id, answer, reply_markup=user_markup)
+             ".Чем могу помочь? Для получения информации воспользутесь коммандой /help"
+    bot.send_message(message.chat.id, answer)
+    dbworker.set_state(message.chat.id, config.States.S_ENTER_SERVICES.value)
 
-@bot.message_handler(commands=['stop'])
-def handle_command(message):
-    hide_markup = telebot.types.ReplyKeyboardRemove() #скрыть клавиатуры
-    bot.send_message(message.chat.id, '...', reply_markup=hide_markup)
+
+@bot.message_handler(commands=['reset'])
+def cmd_reset(message):
+    user_markup = telebot.types.ReplyKeyboardMarkup(True, True)
+    user_markup.row('/start', '/reset', '/help', '/services')
+    bot.send_message(message.chat.id, 'Что ж, начнём по-новой.', reply_markup=user_markup)
+    dbworker.set_state(message.chat.id, config.States.S_ENTER_SERVICES.value)
+
 
 @bot.message_handler(commands=['help'])
 def handle_command(message):
     answer = HELP
     log(message, answer)
     bot.send_message(message.chat.id, answer)
+
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_ENTER_SERVICES.value)
+def user_start(message):
+    user_markup = telebot.types.ReplyKeyboardMarkup(True, True)
+    user_markup.row('погода', 'фото', 'новости', 'аудио', 'видео', '/reset')
+    bot.send_message(message.chat.id, 'Отлично. Выберите, что вас интересует!')
+    dbworker.set_state(message.chat.id, config.States.S_WEATHER)
+
+
 
 @bot.message_handler(content_types=['text'])
 def handle_command(message):
@@ -87,6 +99,8 @@ def handle_command(message):
     else:
         log(message,answer)
         bot.send_message(message.chat.id, answer)
+
+
 
 
 @bot.callback_query_handler(func=lambda c:True)

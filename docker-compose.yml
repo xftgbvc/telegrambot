@@ -17,7 +17,7 @@ services:
     build: adminyii
     restart: always
     ports:
-      - "8888:80"
+      - "8889:80"
     depends_on:
        - dbpostgres
     volumes:
