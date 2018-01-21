@@ -60,11 +60,11 @@
       <file leaf-file-name="dbPostgres.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dbPostgres.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="252">
-              <caret line="14" column="116" lean-forward="true" selection-start-line="14" selection-start-column="116" selection-end-line="14" selection-end-column="116" />
+            <state relative-caret-position="324">
+              <caret line="18" column="0" lean-forward="true" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
               <folding>
                 <element signature="e#0#46#0" expanded="true" />
-                <marker date="1516114113091" expanded="true" signature="284:416" ph="INSERT INTO user_messages... " />
+                <marker date="1516536962468" expanded="true" signature="286:418" ph="INSERT INTO user_messages... " />
               </folding>
             </state>
           </provider>
@@ -156,6 +156,7 @@
         <option value="$PROJECT_DIR$/photo.py" />
         <option value="$PROJECT_DIR$/weather.py" />
         <option value="$PROJECT_DIR$/currency.py" />
+        <option value="$PROJECT_DIR$/dbPostgres.py" />
       </list>
     </option>
   </component>
@@ -723,11 +724,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/dbPostgres.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="14" column="116" lean-forward="true" selection-start-line="14" selection-start-column="116" selection-end-line="14" selection-end-column="116" />
+        <state relative-caret-position="324">
+          <caret line="18" column="0" lean-forward="true" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
           <folding>
             <element signature="e#0#46#0" expanded="true" />
-            <marker date="1516114113091" expanded="true" signature="284:416" ph="INSERT INTO user_messages... " />
+            <marker date="1516536962468" expanded="true" signature="286:418" ph="INSERT INTO user_messages... " />
           </folding>
         </state>
       </provider>
