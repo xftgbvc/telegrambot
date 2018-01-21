@@ -1,179 +1,152 @@
 # -*- coding: utf-8 -*-
 import telebot #telegramp api
-import random
-import os
-import youtube
+from youtube import YouTube
+from photo import Photo
+from audio import Audio
+from weather import Weather
+from currency import Currency
 from constants import *
 import gameNews #игровые новости
-from log import log #логи в консоль
-import dbPostgres #БД постгрис
-import pyowm #погода
 import dbworker
 import config
+from  statesData import StatesData
 
 bot = telebot.TeleBot(BOT_TOKEN)
-news = gameNews.News('http://gamemag.ru/',0, 23, 1)
-youtubeplaylist = youtube.YouTubePlayList('PL3485902CC4FB6C67', '50')
 
-
-owm = pyowm.OWM('ff79e09fdcbbc3e4d6c6a744b0a11f2b')
-
-
+news = gameNews.News('http://gamemag.ru/', 1)
+youtube = YouTube('PL3485902CC4FB6C67', '50')
+photo = Photo()
+audio = Audio()
+weather = Weather()
+currency = Currency()
+state = StatesData()
+name = ''
 print('Бот запущен')
 
 #Логика бота
 @bot.message_handler(commands=['start'])
 def cmd_start(message):
-    answer = "Добро Пожаловать " + message.chat.first_name + ' ' + message.chat.last_name + \
-             ".Чем могу помочь? Для получения информации воспользутесь коммандой /help"
-    bot.send_message(message.chat.id, answer)
-    dbworker.set_state(message.chat.id, config.States.S_ENTER_SERVICES.value)
+    #answer = "Добро Пожаловать " + message.chat.first_name + ' ' + str(message.chat.last_name) + \
+             #".Чем могу помочь? Для получения информации воспользутесь коммандой /help"
+    #bot.send_message(message.chat.id, answer)
 
+    state.setEnterName(message.chat.id)
+    bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
+
+
+    #dbworker.set_state(message.chat.id, config.States.S_ENTER_SERVICES.value)
 
 @bot.message_handler(commands=['reset'])
 def cmd_reset(message):
-    user_markup = telebot.types.ReplyKeyboardMarkup(True, True)
-    user_markup.row('/start', '/reset', '/help', '/services')
-    bot.send_message(message.chat.id, 'Что ж, начнём по-новой.', reply_markup=user_markup)
-    dbworker.set_state(message.chat.id, config.States.S_ENTER_SERVICES.value)
+    state.setEnterName(message.chat.id)
+    bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
+    #dbworker.set_state(message.chat.id, config.States.S_ENTER_SERVICES.value)
 
 
 @bot.message_handler(commands=['help'])
 def handle_command(message):
     answer = HELP
-    log(message, answer)
     bot.send_message(message.chat.id, answer)
 
+
+# Состояние - Знакомство
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_ENTER_NAME.value)
+def user_entering_name(message):
+    state.setEnterServices(message.chat.id)
+    bot.send_message(message.chat.id, message.text + '. ' + state.message, reply_markup=state.keyboard)
+
+
+# Состояние - Сервисы
 @bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_ENTER_SERVICES.value)
-def user_start(message):
-    user_markup = telebot.types.ReplyKeyboardMarkup(True, True)
-    user_markup.row('погода', 'фото', 'новости', 'аудио', 'видео', '/reset')
-    bot.send_message(message.chat.id, 'Отлично. Выберите, что вас интересует!')
-    dbworker.set_state(message.chat.id, config.States.S_WEATHER)
+def user_choose_service(message):
+    if message.text == 'Погода':
+        state.setWeatherRegion(message.chat.id)
+    elif message.text == 'Валюта':
+        state.setCurrency(message.chat.id)
+    elif message.text == 'Фото':
+        state.setPhoto(message.chat.id)
+    elif message.text == 'Новости':
+        state.setNews(message.chat.id)
+    elif message.text == 'Аудио':
+        state.setAudio(message.chat.id)
+    elif message.text == 'Видео':
+        state.setYouTube(message.chat.id)
 
+    bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
 
-
-@bot.message_handler(content_types=['text'])
-def handle_command(message):
-    answer = "Неизветно. Для помощи воспользуйтесь командой /help"
-    if message.text == "фото":
-        answer = "Выберете категорию фото"
-        keyboard = telebot.types.InlineKeyboardMarkup()
-        keyboard.add(*[telebot.types.InlineKeyboardButton(text=name, callback_data=name) for name in ['Кот','Собака','Лошадь']])
-        log(message, answer)
-        bot.send_message(message.chat.id, answer, parse_mode='Markdown', reply_markup=keyboard)
-
-    elif message.text == "новости":
-        send_news(message, 1)
-
-    elif message.text == "видео":
-        send_video(message)
-
-    elif message.text == "аудио":
-        audioItems = os.listdir(MUSIC_DIRECTORY)
-        randomAudio = random.choice(audioItems)
-        answer = randomAudio
-        log(message, answer) #логируем
-        dbPostgres.insertUserMessage(message, answer)  # добавляем запись в БД
-        audio = open(MUSIC_DIRECTORY + '/' + randomAudio, 'rb')
-        bot.send_voice(message.chat.id, audio, caption=randomAudio, timeout=20)
-
-
-    elif message.text == "локация":
-        bot.send_chat_action(message.from_user.id, 'find_location')
-        answer = (54.545454, 53.545454)
-        log(message, answer) #логируем
-        dbPostgres.insertUserMessage(message, answer)  # добавляем запись в БД
-        bot.send_location(message.chat.id, *answer)
-
-    elif message.text == "погода":
-        answer = 'Выберите город:'
-        keyboard = telebot.types.InlineKeyboardMarkup()
-        keyboard.add(*[telebot.types.InlineKeyboardButton(text=city, callback_data=city) for city in ['Тверь', 'Москва', 'Санкт-Петербург']])
-        log(message, answer)
-        bot.send_message(message.chat.id, answer, parse_mode='Markdown', reply_markup=keyboard)
-
-
-
-    #неизвестная команда
+# Состояние - Погода/Регион
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_WEATHER_REGION.value)
+def user_choose_region(message):
+    if message.text == '⬅':
+        state.setEnterServices(message.chat.id)
+        bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
     else:
-        log(message,answer)
-        bot.send_message(message.chat.id, answer)
+        state.setWeatherInformation(message.chat.id)
+        weather.setCity(message.text)
+        bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
 
+# Состояние - Погода/Информация
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_WEATHER_INFORMATION.value)
+def user_choose_weather_information(message):
+    if message.text == '⬅':
+        state.setWeatherRegion(message.chat.id)
+        bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
+    elif message.text == 'Максимальная Температура' or message.text == 'Температура' or message.text == 'Минимальная Температура':
+        weather.sendTemperature(bot, message, state)
+    elif message.text == 'Влажность':
+        weather.sendHumidity(bot, message, state)
+    elif message.text == 'Давление':
+        weather.sendPressure(bot, message, state)
+    elif message.text == 'Ветер':
+        weather.sendWind(bot, message, state)
 
-
-
-@bot.callback_query_handler(func=lambda c:True)
-def handle_command(c):
-    if c.data == 'Кошак':
-        directory = IMAGES_CATS_DIRECTORY
-        send_photo(directory, c)
-    elif c.data == 'Собака':
-        directory = IMAGES_DOGS_DIRECTORY
-        send_photo(directory, c)
-    elif c.data == 'Лошадь':
-        directory = IMAGES_HORSES_DIRECTORY
-        send_photo(directory, c)
-    elif c.data == 'moreNews':
-        send_news(c.message, news.page + 1)
-    elif c.data == 'Тверь':
-        cityName = 'Tver,RU'
-        send_weather(cityName, c)
-    elif c.data == 'Москва':
-        cityName = 'Moscow,RU'
-        send_weather(cityName, c)
-    elif c.data == 'Санкт-Петербург':
-        cityName = 'Saint Petersburg,RU'
-        send_weather(cityName, c)
+# Состояние - Фото
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_PHOTO.value)
+def user_choose_photo(message):
+    if message.text == '⬅':
+        state.setEnterServices(message.chat.id)
+        bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
     else:
-        bot.send_message(c.message.chat.id, "Ошибка. Не найдено")
+        photo.send_photo(bot, message, state)
+
+# Состояние - Аудио
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_AUDIO.value)
+def user_choose_audio(message):
+    if message.text == '⬅':
+        state.setEnterServices(message.chat.id)
+        bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
+    else:
+        audio.send_audio(bot, message, state)
+
+# Состояние - Видео(YouTube)
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_YOUTUBE.value)
+def user_choose_playlist(message):
+    if message.text == '⬅':
+        state.setEnterServices(message.chat.id)
+        bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
+    else:
+        youtube.send_video(bot, message, state)
+
+# Состояние - Новости
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_NEWS.value)
+def user_choose_playlist(message):
+    if message.text == '⬅':
+        state.setEnterServices(message.chat.id)
+        bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
+    else:
+        news.set_stop(message.text)
+        news.send_news(bot, message, state)
 
 
-# функция - отправить погоду
-def send_weather(cityName, c):
-    observation = owm.weather_at_place(cityName)
-    w = observation.get_weather()
-    temperature = w.get_temperature('celsius')
-    answer = 'Температура: ' + str(temperature['temp']) + ' Максимальная температура: ' + str(temperature['temp_max']) + ' Минимальная температура: ' + str(temperature['temp_min'])
-    dbPostgres.insertUserMessage(c.message, answer)  # добавляем запись в БД
-    bot.send_message(c.message.chat.id, answer)
+# Состояние - Валюты
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_CURRENCY.value)
+def user_choose_currency(message):
+    if message.text == '⬅':
+        state.setEnterServices(message.chat.id)
+        bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
+    else:
+        currency.send_currency(bot, message, state)
 
-#функция - отправить фото
-def send_photo(directory, c):
-    images = os.listdir(directory)
-    randomPhoto = random.choice(images)
-    answer = randomPhoto
-    log(c.message, answer) # логируем
-    dbPostgres.insertUserMessage(c.message, answer)  # добавляем запись в БД
-    img = open(directory + '/' + randomPhoto, 'rb')
-    bot.send_photo(c.message.chat.id, img)
-    img.close()
-
-#функция - отправить новости
-def send_news(message, page):
-    news.page = page
-    newsTitlesDb = '' #заголовки новостей для бд
-    newsItems = news.parse()
-    for newsItem in newsItems:
-        newsUrl = newsItem['url']
-        newsTitle = newsItem['title']
-        newsTitlesDb += newsTitle + '\n'
-        log(message, newsTitle) # логируем
-        bot.send_message(message.chat.id, newsUrl)
-    dbPostgres.insertUserMessage(message, newsTitlesDb)  # добавляем запись в БД
-    keyboard = telebot.types.InlineKeyboardMarkup()
-    keyboard.add(telebot.types.InlineKeyboardButton(text='+', callback_data='moreNews'))
-    bot.send_message(message.chat.id, '<pre>---------- Загрузить больше новостей ----------</pre>', parse_mode='HTML', reply_markup=keyboard)
-
-#функция - отправить видео
-def send_video(message):
-    videos = youtubeplaylist.parse()
-    randomVideo = random.choice(videos)
-    answer = 'https://www.youtube.com/watch?v=' + randomVideo['id']
-    logAnswer = randomVideo['title'] + " " + answer
-    log(message, logAnswer)  # логируем
-    dbPostgres.insertUserMessage(message, logAnswer)  # добавляем запись в БД
-    bot.send_message(message.from_user.id, answer) # отпрвляем сообещние в телеграм
 
 
 bot.polling(none_stop=True, interval=0)

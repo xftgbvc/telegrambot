@@ -3,4 +3,5 @@ pyTelegramBotAPI
 BeautifulSoup4
 vedis
 pyowm
+pycbrf
 
