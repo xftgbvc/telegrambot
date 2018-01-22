@@ -12,6 +12,7 @@ class YouTube:
     playlistID = 'PL3485902CC4FB6C67'
     maxresults = '50'
 
+    #  Конструктор
     def __init__(self, playlistID, maxresults):
         if int(maxresults) > 50:
             self.maxresults = '50'

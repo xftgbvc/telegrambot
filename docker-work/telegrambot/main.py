@@ -8,7 +8,7 @@ from currency import Currency
 from constants import *
 import gameNews #игровые новости
 import dbworker
-import config
+from statesData import States, db_file
 from  statesData import StatesData
 
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -26,21 +26,13 @@ print('Бот запущен')
 #Логика бота
 @bot.message_handler(commands=['start'])
 def cmd_start(message):
-    #answer = "Добро Пожаловать " + message.chat.first_name + ' ' + str(message.chat.last_name) + \
-             #".Чем могу помочь? Для получения информации воспользутесь коммандой /help"
-    #bot.send_message(message.chat.id, answer)
-
     state.setEnterName(message.chat.id)
     bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
-
-
-    #dbworker.set_state(message.chat.id, config.States.S_ENTER_SERVICES.value)
 
 @bot.message_handler(commands=['reset'])
 def cmd_reset(message):
     state.setEnterName(message.chat.id)
     bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
-    #dbworker.set_state(message.chat.id, config.States.S_ENTER_SERVICES.value)
 
 
 @bot.message_handler(commands=['help'])
@@ -50,14 +42,14 @@ def handle_command(message):
 
 
 # Состояние - Знакомство
-@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_ENTER_NAME.value)
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_ENTER_NAME.value)
 def user_entering_name(message):
     state.setEnterServices(message.chat.id)
     bot.send_message(message.chat.id, message.text + '. ' + state.message, reply_markup=state.keyboard)
 
 
 # Состояние - Сервисы
-@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_ENTER_SERVICES.value)
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_ENTER_SERVICES.value)
 def user_choose_service(message):
     if message.text == 'Погода':
         state.setWeatherRegion(message.chat.id)
@@ -75,7 +67,7 @@ def user_choose_service(message):
     bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
 
 # Состояние - Погода/Регион
-@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_WEATHER_REGION.value)
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_WEATHER_REGION.value)
 def user_choose_region(message):
     if message.text == '⬅':
         state.setEnterServices(message.chat.id)
@@ -86,7 +78,7 @@ def user_choose_region(message):
         bot.send_message(message.chat.id, state.message, reply_markup=state.keyboard)
 
 # Состояние - Погода/Информация
-@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_WEATHER_INFORMATION.value)
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_WEATHER_INFORMATION.value)
 def user_choose_weather_information(message):
     if message.text == '⬅':
         state.setWeatherRegion(message.chat.id)
@@ -101,7 +93,7 @@ def user_choose_weather_information(message):
         weather.sendWind(bot, message, state)
 
 # Состояние - Фото
-@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_PHOTO.value)
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_PHOTO.value)
 def user_choose_photo(message):
     if message.text == '⬅':
         state.setEnterServices(message.chat.id)
@@ -110,7 +102,7 @@ def user_choose_photo(message):
         photo.send_photo(bot, message, state)
 
 # Состояние - Аудио
-@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_AUDIO.value)
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_AUDIO.value)
 def user_choose_audio(message):
     if message.text == '⬅':
         state.setEnterServices(message.chat.id)
@@ -119,7 +111,7 @@ def user_choose_audio(message):
         audio.send_audio(bot, message, state)
 
 # Состояние - Видео(YouTube)
-@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_YOUTUBE.value)
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_YOUTUBE.value)
 def user_choose_playlist(message):
     if message.text == '⬅':
         state.setEnterServices(message.chat.id)
@@ -128,7 +120,7 @@ def user_choose_playlist(message):
         youtube.send_video(bot, message, state)
 
 # Состояние - Новости
-@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_NEWS.value)
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_NEWS.value)
 def user_choose_playlist(message):
     if message.text == '⬅':
         state.setEnterServices(message.chat.id)
@@ -139,7 +131,7 @@ def user_choose_playlist(message):
 
 
 # Состояние - Валюты
-@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == config.States.S_CURRENCY.value)
+@bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_CURRENCY.value)
 def user_choose_currency(message):
     if message.text == '⬅':
         state.setEnterServices(message.chat.id)

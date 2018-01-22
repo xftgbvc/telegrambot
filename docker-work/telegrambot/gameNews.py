@@ -10,6 +10,7 @@ class News:
     stop = 5
     page = 1
 
+    #  Конструктор
     def __init__(self, url, page):
         self.url = url
         self.page = page
