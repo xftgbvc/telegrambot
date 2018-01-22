@@ -7,6 +7,7 @@ import dbPostgres
 
 class YouTube:
 
+    # Словарь - ID Плейлестов YouTube
     playlistDict = {'Рок': 'PL3485902CC4FB6C67', 'Электронная' : 'PLApUfe4je0BPEjZwUuCgtNHcLrNYSWWf1',
                     'Классическая': 'PLI7WrjTQbM1aNUmDRIx2_eGgVPhKvSOwZ'}
     playlistID = 'PL3485902CC4FB6C67'
@@ -44,7 +45,7 @@ class YouTube:
 
         return videos
 
-    # Метод - отправить видео
+    # Метод - Отправить видео
     def send_video(self, bot, message, state):
         self.setPlaylist(message.text)
         videos = self.parse()

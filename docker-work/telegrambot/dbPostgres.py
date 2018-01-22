@@ -3,7 +3,7 @@ from datetime import datetime
 
 db = postgresql.open('pq://west223:westwest223@dbpostgres:5432/telegram_db')
 
-#Вставить запись в таблицу user_messages #
+#Вставить запись в таблицу user_messages
 def insertUserMessage(message, answer):
     insertDBUserMessage = db.prepare(
         "INSERT INTO user_messages (request_message, response_message, user_id, user_name, created_at)"

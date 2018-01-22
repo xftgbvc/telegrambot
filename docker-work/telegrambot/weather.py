@@ -4,6 +4,7 @@ import dbPostgres
 
 class Weather:
     owm = pyowm.OWM('ff79e09fdcbbc3e4d6c6a744b0a11f2b')
+
     cityDict = {'Тверь': 'Tver,RU', 'Москва': 'Moscow,RU',
                     'Санкт-Петербург': 'Saint Petersburg,RU'}
     tempDict = {'Температура' : 'temp', 'Максимальная Температура': 'temp_max', 'Минимальная Температура' : 'temp_min'}

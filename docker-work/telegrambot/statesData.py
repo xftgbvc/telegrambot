@@ -5,6 +5,7 @@ from enum import Enum
 
 db_file = "database.vdb"
 
+# Перечисление возможных состояний
 class States(Enum):
     S_START = "0"  # Начало нового диалога
     S_ENTER_NAME = "1"
@@ -18,6 +19,7 @@ class States(Enum):
     S_CURRENCY = "9"
 
 
+# Класс - Состояния
 class StatesData:
     message = ''
     keyboard = ''

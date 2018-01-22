@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+# NO SQL БД VEDIS
 from vedis import Vedis
 from statesData import States, db_file
 

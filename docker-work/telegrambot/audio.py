@@ -6,9 +6,11 @@ import dbPostgres
 
 class Audio:
 
+    # Словарь - Директории аудио
     directoryDict = {'Рок': MUSIC_ROCK_DIRECTORY, 'Электронная': MUSIC_ELECTRONIC_DIRECTORY,
                      'Классическая': MUSIC_CLASSIC_DIRECTORY}
 
+    # Метод - отправить аудио
     def send_audio(self, bot, message, state):
         audioItems = os.listdir(self.directoryDict[message.text])
         randomAudio = random.choice(audioItems)

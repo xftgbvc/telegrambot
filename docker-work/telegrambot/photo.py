@@ -5,10 +5,12 @@ import dbPostgres
 from constants import IMAGES_CATS_DIRECTORY, IMAGES_DOGS_DIRECTORY, IMAGES_HORSES_DIRECTORY
 
 class Photo:
+
+    # Словарь - Директории изображений
     directoryDict = {'Кошки': IMAGES_CATS_DIRECTORY, 'Собаки': IMAGES_DOGS_DIRECTORY,
                     'Лошади': IMAGES_HORSES_DIRECTORY}
 
-    # функция - отправить фото
+    # Метод - Отправить фото
     def send_photo(self, bot, message, state):
         directory = self.directoryDict[message.text]
         images = os.listdir(directory)
