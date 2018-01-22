@@ -87,7 +87,7 @@ def user_choose_region(message):
 
 # Состояние - Погода/Информация
 # Если отправлено сообщение и текущее состояние - S_WEATHER_INFORMATION,
-# то меняем на на состояние (S_WEATHER_REGION(Назад)) либо отправляем информацию о погоде(Температура, Влажность, Давление, Ветер)
+# то меняем на состояние (S_WEATHER_REGION(Назад)) либо отправляем информацию о погоде(Температура, Влажность, Давление, Ветер)
 @bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_WEATHER_INFORMATION.value)
 def user_choose_weather_information(message):
     if message.text == '⬅':
@@ -104,7 +104,7 @@ def user_choose_weather_information(message):
 
 # Состояние - Фото
 # Если отправлено сообщение и текущее состояние - S_PHOTO,
-# то меняем на на состояние (S_ENTER_SERVICES(Назад)) либо отправляем фото
+# то меняем на состояние (S_ENTER_SERVICES(Назад)) либо отправляем фото
 @bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_PHOTO.value)
 def user_choose_photo(message):
     if message.text == '⬅':
@@ -115,7 +115,7 @@ def user_choose_photo(message):
 
 # Состояние - Аудио
 # Если отправлено сообщение и текущее состояние - S_AUDIO,
-# то меняем на на состояние (S_ENTER_SERVICES(Назад)) либо отправляем аудио
+# то меняем на состояние (S_ENTER_SERVICES(Назад)) либо отправляем аудио
 @bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_AUDIO.value)
 def user_choose_audio(message):
     if message.text == '⬅':
@@ -126,7 +126,7 @@ def user_choose_audio(message):
 
 # Состояние - Видео(YouTube)
 # Если отправлено сообщение и текущее состояние - S_YOUTUBE,
-# то меняем на на состояние (S_ENTER_SERVICES(Назад)) либо отправляем видео(youtube)
+# то меняем на состояние (S_ENTER_SERVICES(Назад)) либо отправляем видео(youtube)
 @bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_YOUTUBE.value)
 def user_choose_playlist(message):
     if message.text == '⬅':
@@ -137,7 +137,7 @@ def user_choose_playlist(message):
 
 # Состояние - Новости
 # Если отправлено сообщение и текущее состояние - S_NEWS,
-# то меняем на на состояние (S_ENTER_SERVICES(Назад)) либо отправляем видео(youtube)
+# то меняем на состояние (S_ENTER_SERVICES(Назад)) либо отправляем видео(youtube)
 @bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_NEWS.value)
 def user_choose_playlist(message):
     if message.text == '⬅':
@@ -150,7 +150,7 @@ def user_choose_playlist(message):
 
 # Состояние - Валюты
 # Если отправлено сообщение и текущее состояние - S_CURRENCY,
-# то меняем на на состояние (S_ENTER_SERVICES(Назад)) либо отправляем информацию о валюте
+# то меняем на состояние (S_ENTER_SERVICES(Назад)) либо отправляем информацию о валюте
 @bot.message_handler(func=lambda message: dbworker.get_current_state(message.chat.id) == States.S_CURRENCY.value)
 def user_choose_currency(message):
     if message.text == '⬅':
